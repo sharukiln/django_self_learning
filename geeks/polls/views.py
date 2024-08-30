@@ -2,7 +2,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.db.models import F
 from django.http import Http404
 from django.http import HttpResponse
@@ -11,12 +10,10 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from .models import RegisterForm
 
 from .models import Choice
 from .models import Question
+from .models import RegisterForm
 
 
 def index(request):
@@ -39,6 +36,8 @@ def results(request, question_id):
 
 
 def vote(request, question_id):
+    
+    celery_tasks_example(request)
     question = get_object_or_404(Question, pk=question_id)
     try:
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
@@ -91,3 +90,11 @@ def user_logout(request):
 @login_required
 def home(request):
     return render(request, 'home.html')
+
+
+
+from polls.tasks import add
+import time
+def celery_tasks_example(request):
+    # time.sleep(900)
+    result = add.delay(4, 6)
